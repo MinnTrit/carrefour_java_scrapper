@@ -1,6 +1,7 @@
 package playwright;
 
 import com.microsoft.playwright.*;
+import java.lang.Thread;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class CarreFourPlaywright {
 	
 	private void initialize() {
 		System.out.println("Start connecting to the browser");
-		String cookiesPath = "path/to/carrefour_cookies.txt";
+		String cookiesPath = "path\to\carrefour_cookies.txt";
 		Playwright playwright = Playwright.create();
 		Browser browser = playwright.chromium()
 				.launch(new BrowserType.LaunchOptions().setHeadless(headlessOption));
@@ -143,6 +144,11 @@ public class CarreFourPlaywright {
 			String currentBrand = getBrand(currentBox);
 			clickAndEraseBox(currentBox);
 			page.waitForLoadState(LoadState.LOAD);
+            try {
+                Thread.sleep(3000); 
+            } catch (Exception e) {
+                System.out.println("Error occured during the search "+e);
+            }
 			toScroll(totalPage);
 			List<String> nameList = getProductNames();
 			List<String> priceList = getPrices();
