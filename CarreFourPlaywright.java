@@ -47,7 +47,7 @@ public class CarreFourPlaywright {
 	
 	private void initialize() {
 		System.out.println("Start connecting to the browser");
-		String cookiesPath = "D:\\Java Course\\Playwright\\carrefour_cookies.txt";
+		String cookiesPath = "path/to/carrefour_cookies.txt";
 		Playwright playwright = Playwright.create();
 		Browser browser = playwright.chromium()
 				.launch(new BrowserType.LaunchOptions().setHeadless(headlessOption));
