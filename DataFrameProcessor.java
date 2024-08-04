@@ -323,6 +323,7 @@ public class DataFrameProcessor implements Serializable {
 		Dataset<Row> ExistedRatingDf = ratingDf.filter(
 				(Row row) -> sampleSkuList.contains(row.getAs("SKU_ID").toString())
 				);
+		nonExistedRatingDf = nonExistedRatingDf.distinct();
 		//Create the function to update
 		ForeachPartitionFunction<Row> toUpdate = iterator -> {
 			String connectionString = "jdbc:mysql://localhost:3306/minhtriet";
@@ -417,6 +418,7 @@ public class DataFrameProcessor implements Serializable {
 		Dataset<Row> rowsToInsert = priceDf.filter(
 				(Row row) -> !skuIdList.contains(row.getAs("SKU_ID").toString())
 				);
+		rowsToInsert = rowsToInsert.distinct();
 		//Create the functions to update the data by partitions
 		ForeachPartitionFunction<Row> toUpdate = iterator -> {
 			String connectionString = "jdbc:mysql://localhost:3306/minhtriet";
