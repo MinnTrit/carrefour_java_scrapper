@@ -238,7 +238,7 @@ public class DataFrameProcessor implements Serializable {
 		if (!brandList.isEmpty()) {
 			System.out.println("The dataframe is not empty");
 			brandsDf = finalDf.filter((Row row) -> !brandList.contains(row.getAs("Brand")));
-			brandsDf = brandsDf.select("Brand");
+			brandsDf = brandsDf.select("Brand").distinct();
 		}
 		else {
 			brandsDf = finalDf.select("Brand");
@@ -293,7 +293,7 @@ public class DataFrameProcessor implements Serializable {
 			DataTypes.createStructField("Product", DataTypes.StringType, false),
 			DataTypes.createStructField("url", DataTypes.StringType, false),
 			DataTypes.createStructField("img_url", DataTypes.StringType, false),
-			DataTypes.createStructField("BaseSize", DataTypes.StringType, false),
+			DataTypes.createStructField("BaseSize", DataTypes.StringType, true),
 			DataTypes.createStructField("source", DataTypes.StringType, false),
 			DataTypes.createStructField("Created", DataTypes.TimestampType, false)
 		};
@@ -301,6 +301,7 @@ public class DataFrameProcessor implements Serializable {
 		StructType skusTypes = new StructType(skuFields);
 		
 		skusDf = skusDf.map(toExtract, RowEncoder.apply(skusTypes));
+		skusDf = skusDf.distinct();
 		System.out.println(jdbcConnection);
 		skusDf.write().mode("append").jdbc(jdbcConnection,"ecommerce_sku", connectionProperties);
 	};
@@ -376,8 +377,8 @@ public class DataFrameProcessor implements Serializable {
 					Integer ratings = row.isNullAt(1) ? null : row.getInt(1);
 					String stars = row.isNullAt(2) ? null : row.getString(2);
 					if (ratings == null) {
-						preparedStatement.setNull(1, java.sql.Types.INTEGER);
-						preparedStatement.setNull(2, java.sql.Types.VARCHAR);
+						preparedStatement.setNull(2, java.sql.Types.INTEGER);
+						preparedStatement.setNull(3, java.sql.Types.VARCHAR);
 					}
 					else {
 						preparedStatement.setInt(2, ratings);
