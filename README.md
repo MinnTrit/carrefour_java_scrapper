@@ -1,10 +1,10 @@
 # Sample video 
 [https://github.com/user-attachments/assets/2220cefd-e1fb-4d3d-a18f-4bd8e87fe8b1](https://github.com/user-attachments/assets/a7362786-044f-4c43-aae4-f3c78ade1068)
 
-# Overall diagram
+# Overall data model
 ![image](https://github.com/user-attachments/assets/b4ce9b66-f280-4718-8de5-426b5ff9dd6b)
 
-# Diagram breakdown
+# Data model breakdown
 ```Notes```: This project is mainly used to scrape the SKUs (Products) from the public E-commerce website Carrefour. Its main goal is to schedule the pipeline, can be implemented on cloud-base system, to periodically scrape the data from the website.
 1. ```Ecommerce_brand``` table:
 This is the table containing ```Unique``` information of the ```Brand``` from which SKUs belong to. This table will only add in ```new brands``` in upcoming scrape.
@@ -53,3 +53,6 @@ This is the table containing information of all the SKU's prices being scrapped.
   * ```Stars```: The actual stars of the products displayed on the E-commerce platforms
   * ```created```: The date time that the products were inserted to this table
   * ```updated```: The date time that the products were updated to this table
+# Scrapped source 
+ ![image](https://github.com/user-attachments/assets/01f824a4-f71b-4186-9660-da837b5ad163)
+
