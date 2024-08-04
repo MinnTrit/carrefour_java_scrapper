@@ -1,25 +1,25 @@
 package playwright;
-import org.apache.spark.SparkConf;
-import org.apache.spark.sql.*;
-import static org.apache.spark.sql.functions.*;
-import org.apache.spark.sql.catalyst.encoders.RowEncoder;
-import org.apache.spark.sql.types.*;
-import org.apache.spark.api.java.*;
+import org.apache..Conf;
+import org.apache..sql.*;
+import static org.apache..sql.functions.*;
+import org.apache..sql.catalyst.encoders.RowEncoder;
+import org.apache..sql.types.*;
+import org.apache..api.java.*;
 import java.util.List;
 import java.util.Map;
 import java.io.Serializable;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import org.apache.spark.api.java.function.*;
+import org.apache..api.java.function.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import org.apache.spark.sql.expressions.*;
+import org.apache..sql.expressions.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Timestamp;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import static org.apache.spark.sql.functions.lit;
+import static org.apache..sql.functions.lit;
 import java.sql.PreparedStatement;
 import scala.Function1;
 import scala.runtime.BoxedUnit;
@@ -30,39 +30,39 @@ public class DataFrameProcessor implements Serializable {
 	private transient String searchKeyword;
 	private transient String jdbcConnection;
 	private transient Properties connectionProperties;
-	private transient SparkSession sparkSession;
-	private transient JavaSparkContext sparkContext;
+	private transient Session Session;
+	private transient JavaContext Context;
 	private transient Connection connection;
 	private transient PreparedStatement preparedStatement;
 	private Dataset<Row> finalDf;
 	public DataFrameProcessor(String searchKeyword) {
 		this.searchKeyword = searchKeyword;
-		System.out.println("Start initializing Java Spark");
+		System.out.println("Start initializing Java ");
 		initialize();
 	};
 	
 	private void initialize() {
 		String jdbcConnection = "jdbc:mysql://localhost:3306/minhtriet";
 		Properties connectionProperties = new Properties();
-		connectionProperties.put("user", "spark");
-		connectionProperties.put("password", "Bautroixanh12345");
+		connectionProperties.put("user", "");
+		connectionProperties.put("password", "");
 		connectionProperties.put("driver", "com.mysql.cj.jdbc.Driver");
 		this.jdbcConnection = jdbcConnection;
 		this.connectionProperties = connectionProperties;
-		SparkConf conf = new SparkConf().setAppName("Processor").setMaster("local[*]")
-				.set("spark.driver.memory", "4g")
-				.set("spark.executor.cores", "3")
-				.set("spark.executor.instances", "9")
-				.set("spark.executor.memory", "16g");
-		SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
-		JavaSparkContext sparkContext = new JavaSparkContext(sparkSession.sparkContext());
-		this.sparkContext = sparkContext;
-		this.sparkSession = sparkSession;
+		Conf conf = new Conf().setAppName("Processor").setMaster("local[*]")
+				.set(".driver.memory", "4g")
+				.set(".executor.cores", "3")
+				.set(".executor.instances", "9")
+				.set(".executor.memory", "16g");
+		Session Session = Session.builder().config(conf).getOrCreate();
+		JavaContext Context = new JavaContext(Session.Context());
+		this.Context = Context;
+		this.Session = Session;
 	}
 	
 	public Dataset<Row> toDataframe(List<Map<String, String>> inputList) {
 		System.out.println("Start processing the data");
-		JavaRDD<Map<String, String>> stringRDD = sparkContext.parallelize(inputList);
+		JavaRDD<Map<String, String>> stringRDD = Context.parallelize(inputList);
 		
 		Function<Map<String, String>, Row> toRow = new Function<>() {
 			@Override
@@ -152,7 +152,7 @@ public class DataFrameProcessor implements Serializable {
 			DataTypes.createStructField("source", DataTypes.StringType, false)
 		};
 		StructType schema = new StructType(fields);
-		Dataset<Row> returnedDf = sparkSession.createDataFrame(rdd, schema);
+		Dataset<Row> returnedDf = Session.createDataFrame(rdd, schema);
 		this.finalDf = returnedDf;
 		return returnedDf;
 	}
@@ -182,25 +182,25 @@ public class DataFrameProcessor implements Serializable {
 	};
 	
 	private Dataset<Row> readSkus() {
-		Dataset<Row> skuDf = sparkSession.read()
+		Dataset<Row> skuDf = Session.read()
 								.jdbc(jdbcConnection, "ecommerce_sku", connectionProperties);
 		return skuDf;
 	}
 	
 	private Dataset<Row> readRatings() {
-		Dataset<Row> ratingDf = sparkSession.read()
+		Dataset<Row> ratingDf = Session.read()
 							.jdbc(jdbcConnection, "ecommerce_sku_ratings", connectionProperties);
 		return ratingDf;
 	};
 	
 	private Dataset<Row> readPrices() {
-		Dataset<Row> priceDf = sparkSession.read()
+		Dataset<Row> priceDf = Session.read()
 								.jdbc(jdbcConnection, "ecommerce_sku_prices", connectionProperties);
 		return priceDf;
 	};
 	
 	private Dataset<Row> readBrands() {
-		Dataset<Row> brandsDf = sparkSession.read()
+		Dataset<Row> brandsDf = Session.read()
 				.jdbc(jdbcConnection, "ecommerce_brand", connectionProperties);
 		return brandsDf;
 	}
@@ -238,7 +238,7 @@ public class DataFrameProcessor implements Serializable {
 		if (!brandList.isEmpty()) {
 			System.out.println("The dataframe is not empty");
 			brandsDf = finalDf.filter((Row row) -> !brandList.contains(row.getAs("Brand")));
-			brandsDf = brandsDf.select("Brand");
+			brandsDf = brandsDf.select("Brand").distinct();
 		}
 		else {
 			brandsDf = finalDf.select("Brand");
@@ -293,7 +293,7 @@ public class DataFrameProcessor implements Serializable {
 			DataTypes.createStructField("Product", DataTypes.StringType, false),
 			DataTypes.createStructField("url", DataTypes.StringType, false),
 			DataTypes.createStructField("img_url", DataTypes.StringType, false),
-			DataTypes.createStructField("BaseSize", DataTypes.StringType, false),
+			DataTypes.createStructField("BaseSize", DataTypes.StringType, true),
 			DataTypes.createStructField("source", DataTypes.StringType, false),
 			DataTypes.createStructField("Created", DataTypes.TimestampType, false)
 		};
@@ -301,6 +301,7 @@ public class DataFrameProcessor implements Serializable {
 		StructType skusTypes = new StructType(skuFields);
 		
 		skusDf = skusDf.map(toExtract, RowEncoder.apply(skusTypes));
+		skusDf = skusDf.distinct();
 		System.out.println(jdbcConnection);
 		skusDf.write().mode("append").jdbc(jdbcConnection,"ecommerce_sku", connectionProperties);
 	};
@@ -322,12 +323,13 @@ public class DataFrameProcessor implements Serializable {
 		Dataset<Row> ExistedRatingDf = ratingDf.filter(
 				(Row row) -> sampleSkuList.contains(row.getAs("SKU_ID").toString())
 				);
+		nonExistedRatingDf = nonExistedRatingDf.distinct();
 		//Create the function to update
 		ForeachPartitionFunction<Row> toUpdate = iterator -> {
 			String connectionString = "jdbc:mysql://localhost:3306/minhtriet";
 			Properties connectionProperties = new Properties();
-			connectionProperties.setProperty("user", "spark");
-			connectionProperties.setProperty("password", "Bautroixanh12345");
+			connectionProperties.setProperty("user", "");
+			connectionProperties.setProperty("password", "");
 			connectionProperties.setProperty("driver", "com.mysql.cj.jdbc.Driver");
 			try (Connection connection = DriverManager.getConnection(connectionString, connectionProperties);
 				PreparedStatement preparedStatement = connection.prepareStatement(
@@ -361,8 +363,8 @@ public class DataFrameProcessor implements Serializable {
 		ForeachPartitionFunction<Row> toInsert = iterator -> {
 			String connectionString = "jdbc:mysql://localhost:3306/minhtriet";
 			Properties connectionProperties = new Properties();
-			connectionProperties.put("user", "spark");
-			connectionProperties.put("password", "Bautroixanh12345");
+			connectionProperties.put("user", "");
+			connectionProperties.put("password", "");
 			connectionProperties.put("driver", "com.mysql.cj.jdbc.Driver");
 			try (Connection connection = DriverManager.getConnection(connectionString, connectionProperties);
 				PreparedStatement preparedStatement = connection.prepareStatement(
@@ -376,8 +378,8 @@ public class DataFrameProcessor implements Serializable {
 					Integer ratings = row.isNullAt(1) ? null : row.getInt(1);
 					String stars = row.isNullAt(2) ? null : row.getString(2);
 					if (ratings == null) {
-						preparedStatement.setNull(1, java.sql.Types.INTEGER);
-						preparedStatement.setNull(2, java.sql.Types.VARCHAR);
+						preparedStatement.setNull(2, java.sql.Types.INTEGER);
+						preparedStatement.setNull(3, java.sql.Types.VARCHAR);
 					}
 					else {
 						preparedStatement.setInt(2, ratings);
@@ -416,12 +418,13 @@ public class DataFrameProcessor implements Serializable {
 		Dataset<Row> rowsToInsert = priceDf.filter(
 				(Row row) -> !skuIdList.contains(row.getAs("SKU_ID").toString())
 				);
+		rowsToInsert = rowsToInsert.distinct();
 		//Create the functions to update the data by partitions
 		ForeachPartitionFunction<Row> toUpdate = iterator -> {
 			String connectionString = "jdbc:mysql://localhost:3306/minhtriet";
 			Properties connectionProperties = new Properties();
-			connectionProperties.put("user", "spark");
-			connectionProperties.put("password", "Bautroixanh12345");
+			connectionProperties.put("user", "");
+			connectionProperties.put("password", "");
 			connectionProperties.put("driver", "com.mysql.cj.jdbc.Driver");
 			try (Connection connection = DriverManager.getConnection(connectionString, connectionProperties);
 				PreparedStatement preparedStatement = connection.prepareStatement("UPDATE ecommerce_sku_prices set price = ?, Updated = ? where SKU_ID = ?")){				
@@ -446,8 +449,8 @@ public class DataFrameProcessor implements Serializable {
 	ForeachPartitionFunction<Row> toInsert = iterator -> {
 		String connectionString = "jdbc:mysql://localhost:3306/minhtriet";
 		Properties connectionProperties = new Properties();
-		connectionProperties.put("user", "spark");
-		connectionProperties.put("password", "Bautroixanh12345");
+		connectionProperties.put("user", "");
+		connectionProperties.put("password", "");
 		connectionProperties.put("driver", "com.mysql.cj.jdbc.Driver");
 		try (Connection connection = DriverManager.getConnection(connectionString, connectionProperties);
 			PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO ecommerce_sku_prices (SKU_ID, price, created, updated, fk_sku_id)"
@@ -564,8 +567,8 @@ public class DataFrameProcessor implements Serializable {
 		
 	};
 	
-	public void stopSpark() {
-		sparkSession.stop();
-		System.out.println("Spark session has been closed");
+	public void stop() {
+		Session.stop();
+		System.out.println(" session has been closed");
 	}
 }
